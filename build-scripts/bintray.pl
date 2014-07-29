@@ -42,11 +42,55 @@ say_and_exit("no 'token' given!") unless defined($token);
 
 # action
 #  * base params are used from global scope
+info($pkg) if $mode eq "info";
+logs($pkg) if $mode eq "log";
 create($pkg, $tag_name) if $mode eq "create";
 del($pkg, $tag_name) if $mode eq "delete";
 upload($pkg, $tag_name, $file) if $mode eq "upload";
 upload_dir($pkg, $tag_name, $dir) if $mode eq "upload-dir";
 publish($pkg, $tag_name) if $mode eq "publish";
+
+sub info{
+    my $pkg = shift;
+
+    say_and_exit("no 'package' given!") unless defined($pkg);
+    
+    for my $repo(qw/deb rpm FreeBSD windows/){
+        my $url = "https://api.bintray.com/packages/${user}/${repo}/${pkg}";
+        say $url;
+        my $request = HTTP::Request->new(GET => $url);
+        $request->authorization_basic($user, $token);
+        
+        my $ua = LWP::UserAgent->new;
+        my $response = $ua->request($request);
+        if(defined($dump_raw_json)){
+            say $response->content;
+        }else{
+            say Dump Load($response->content);
+        }
+    }
+}
+
+sub logs{
+    my $pkg = shift;
+
+    say_and_exit("no 'package' given!") unless defined($pkg);
+    
+    for my $repo(qw/deb rpm FreeBSD windows/){
+        my $url = "https://api.bintray.com/packages/${user}/${repo}/${pkg}/logs";
+        say $url;
+        my $request = HTTP::Request->new(GET => $url);
+        $request->authorization_basic($user, $token);
+        
+        my $ua = LWP::UserAgent->new;
+        my $response = $ua->request($request);
+        if(defined($dump_raw_json)){
+            say $response->content;
+        }else{
+            say Dump Load($response->content);
+        }
+    }
+}
 
 
 sub create{
